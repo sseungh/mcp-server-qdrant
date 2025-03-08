@@ -50,6 +50,10 @@ def serve(
                         "information": {
                             "type": "string",
                         },
+                        "metadata": {
+                            "type": "object",
+                            "description": "Optional metadata to associate with the memory",
+                        },
                     },
                     "required": ["information"],
                 },
@@ -68,6 +72,14 @@ def serve(
                         "query": {
                             "type": "string",
                             "description": "The query to search for",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "Maximum number of results to return (default: 10)",
+                        },
+                        "filter_metadata": {
+                            "type": "object",
+                            "description": "Metadata filters to apply to the search",
                         }
                     },
                     "required": ["query"],
@@ -86,23 +98,35 @@ def serve(
             if not arguments or "information" not in arguments:
                 raise ValueError("Missing required argument 'information'")
             information = arguments["information"]
-            await qdrant_connector.store_memory(information)
+            metadata = arguments.get("metadata")
+            await qdrant_connector.store_memory(information, metadata)
             return [types.TextContent(type="text", text=f"Remembered: {information}")]
 
         if name == "qdrant-find-memories":
             if not arguments or "query" not in arguments:
                 raise ValueError("Missing required argument 'query'")
             query = arguments["query"]
-            memories = await qdrant_connector.find_memories(query)
+            limit = arguments.get("limit", 10)
+            filter_metadata = arguments.get("filter_metadata")
+            
+            memories = await qdrant_connector.find_memories(query, limit, filter_metadata)
             content = [
                 types.TextContent(
                     type="text", text=f"Memories for the query '{query}'"
                 ),
             ]
+            
             for memory in memories:
+                # Format memory with document content and metadata if available
+                memory_text = memory["document"]
+                if memory["metadata"]:
+                    metadata_str = ", ".join([f"{k}: {v}" for k, v in memory["metadata"].items()])
+                    memory_text = f"{memory_text} [Metadata: {metadata_str}] [Score: {memory['score']:.2f}]"
+                
                 content.append(
-                    types.TextContent(type="text", text=f"<memory>{memory}</memory>")
+                    types.TextContent(type="text", text=f"<memory>{memory_text}</memory>")
                 )
+            
             return content
 
         raise ValueError(f"Unknown tool: {name}")
