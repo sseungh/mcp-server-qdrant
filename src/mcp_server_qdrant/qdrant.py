@@ -112,7 +112,7 @@ class QdrantConnector:
                         key=f"metadata.{key}",
                         match=models.MatchValue(value=value)
                     )
-                    for key, value in filter_metadata.items()
+                    for key, value in filte`r_metadata.items()
                 ]
             )
 
