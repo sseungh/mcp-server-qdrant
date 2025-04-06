@@ -245,6 +245,15 @@ Claude Code should be already able to:
 1. Use the `qdrant-store` tool to store code snippets with descriptions.
 2. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
 
+### Run MCP server in Development Mode
+
+The MCP server can be run in development mode using the `mcp dev` command. This will start the server and open the MCP
+inspector in your browser.
+
+```shell
+COLLECTION_NAME=mcp-dev mcp dev src/mcp_server_qdrant/server.py
+```
+
 ## Contributing
 
 If you have suggestions for how mcp-server-qdrant could be improved, or want to report a bug, open an issue!
