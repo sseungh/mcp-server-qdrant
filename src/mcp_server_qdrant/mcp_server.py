@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Optional
+from typing import List
 
 from mcp.server.fastmcp import Context, FastMCP
 
@@ -57,11 +57,11 @@ class QdrantMCPServer(FastMCP):
         async def store(
             ctx: Context,
             information: str,
+            collection_name: str,
             # The `metadata` parameter is defined as non-optional, but it can be None.
             # If we set it to be optional, some of the MCP clients, like Cursor, cannot
             # handle the optional parameter correctly.
             metadata: Metadata = None,
-            collection_name: str = None,
         ) -> str:
             """
             Store some information in Qdrant.
@@ -93,7 +93,7 @@ class QdrantMCPServer(FastMCP):
         async def find(
             ctx: Context,
             query: str,
-            collection_name: Optional[str] = None,
+            collection_name: str,
         ) -> List[str]:
             """
             Find memories in Qdrant.
