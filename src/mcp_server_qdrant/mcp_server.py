@@ -225,9 +225,9 @@ def create_mcp_server(
             qdrant_settings,
             embedding_provider_settings,
         )
-    else:
-        return MultiCollectionQdrantMCPServer(
-            tool_settings,
-            qdrant_settings,
-            embedding_provider_settings,
-        )
+
+    return MultiCollectionQdrantMCPServer(
+        tool_settings,
+        qdrant_settings,
+        embedding_provider_settings,
+    )
