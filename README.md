@@ -448,6 +448,10 @@ mcp dev src/mcp_server_qdrant/server.py
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.
 
+> [!NOTE]
+> The `QDRANT_URL=":memory:"` environment variable is used to run Qdrant in-memory mode. This is useful for testing
+> purposes, but not recommended for production use.
+
 ## License
 
 This MCP server is licensed under the Apache License 2.0. This means you are free to use, modify, and distribute the
