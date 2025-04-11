@@ -43,6 +43,9 @@ class QdrantConnector:
         self._client = AsyncQdrantClient(
             location=qdrant_url, api_key=qdrant_api_key, path=qdrant_local_path
         )
+        logger.info(
+            f"Created Qdrant connector to {qdrant_url or qdrant_local_path or 'localhost:6333'}"
+        )
 
     async def store(self, entry: Entry, *, collection_name: str):
         """
