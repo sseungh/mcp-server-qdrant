@@ -94,6 +94,61 @@ class QdrantMCPServer(FastMCP, abc.ABC):
             )
 
 
+class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
+    """
+    An MCP server for Qdrant using a single collection specified in
+    the configuration.
+    """
+
+    async def find(
+        self,
+        ctx: Context,
+        query: str,
+    ) -> List[str]:
+        """
+        Find memories in Qdrant using the default collection.
+        :param ctx: The context for the request.
+        :param query: The query to use for the search.
+        :return: A list of entries found.
+        """
+        await ctx.debug(f"Finding results for query {query}")
+
+        entries = await self.qdrant_connector.search(
+            query,
+            collection_name=self.qdrant_settings.collection_name,
+            limit=self.qdrant_settings.search_limit,
+        )
+        if not entries:
+            return [f"No information found for the query '{query}'"]
+        content = [
+            f"Results for the query '{query}'",
+        ]
+        for entry in entries:
+            content.append(self.format_entry(entry))
+        return content
+
+    async def store(
+        self,
+        ctx: Context,
+        information: str,
+        metadata: Metadata = None,  # type: ignore
+    ) -> str:
+        """
+        Store some information in Qdrant in a default collection.
+        :param ctx: The context for the request.
+        :param information: The information to store.
+        :param metadata: JSON metadata to store with the information, optional.
+        :return: A message indicating that the information was stored.
+        """
+        await ctx.debug(f"Storing information {information} in Qdrant")
+
+        entry = Entry(content=information, metadata=metadata)
+        await self.qdrant_connector.store(
+            entry, collection_name=self.qdrant_settings.collection_name
+        )
+        return f"Remembered: {information}"
+
+
 class MultiCollectionQdrantMCPServer(QdrantMCPServer):
     """
     An MCP server for Qdrant accepting collection name as a tool parameter,
@@ -154,61 +209,6 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
         entry = Entry(content=information, metadata=metadata)
         await self.qdrant_connector.store(entry, collection_name=collection_name)
         return f"Remembered: {information} in collection {collection_name}"
-
-
-class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
-    """
-    An MCP server for Qdrant using a single collection specified in
-    the configuration.
-    """
-
-    async def find(
-        self,
-        ctx: Context,
-        query: str,
-    ) -> List[str]:
-        """
-        Find memories in Qdrant using the default collection.
-        :param ctx: The context for the request.
-        :param query: The query to use for the search.
-        :return: A list of entries found.
-        """
-        await ctx.debug(f"Finding results for query {query}")
-
-        entries = await self.qdrant_connector.search(
-            query,
-            collection_name=self.qdrant_settings.collection_name,
-            limit=self.qdrant_settings.search_limit,
-        )
-        if not entries:
-            return [f"No information found for the query '{query}'"]
-        content = [
-            f"Results for the query '{query}'",
-        ]
-        for entry in entries:
-            content.append(self.format_entry(entry))
-        return content
-
-    async def store(
-        self,
-        ctx: Context,
-        information: str,
-        metadata: Metadata = None,  # type: ignore
-    ) -> str:
-        """
-        Store some information in Qdrant in a default collection.
-        :param ctx: The context for the request.
-        :param information: The information to store.
-        :param metadata: JSON metadata to store with the information, optional.
-        :return: A message indicating that the information was stored.
-        """
-        await ctx.debug(f"Storing information {information} in Qdrant")
-
-        entry = Entry(content=information, metadata=metadata)
-        await self.qdrant_connector.store(
-            entry, collection_name=self.qdrant_settings.collection_name
-        )
-        return f"Remembered: {information}"
 
 
 def create_mcp_server(
