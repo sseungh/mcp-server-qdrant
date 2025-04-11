@@ -167,6 +167,11 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
             name="qdrant-list-collections",
             description="List available collections in Qdrant",
         )
+        self.add_tool(
+            self.create_collection,
+            name="qdrant-create-collection",
+            description="Create a new collection in Qdrant",
+        )
 
     async def find(
         self,
@@ -226,7 +231,7 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
     async def list_collections(self, ctx: Context) -> List[str]:
         await ctx.debug("Listing collections")
 
-        content = ["Available collections:\n"]
+        content = ["Available collections:"]
         async for entry in self.qdrant_connector.iter_all(
             collection_name=self.METADATA_COLLECTION_NAME
         ):
@@ -235,7 +240,23 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
             )
             collection_descriptor = f"- `{entry.content}`{collection_purpose}"
             content.append(collection_descriptor)
+
+        if len(content) == 1:
+            content.append("No collections found")
+
         return content
+
+    async def create_collection(
+        self, ctx: Context, collection_name: str, description: str
+    ) -> str:
+        await ctx.debug(f"Creating collection {collection_name}")
+
+        await self.qdrant_connector.store(
+            Entry(content=collection_name, metadata={"description": description}),
+            collection_name=self.METADATA_COLLECTION_NAME,
+        )
+
+        return f"Created collection {collection_name}"
 
 
 def create_mcp_server(

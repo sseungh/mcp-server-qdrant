@@ -121,7 +121,7 @@ class QdrantConnector:
         offset = None
         logger.debug(f"Starting to iterate over collection {collection_name}")
         while True:
-            offset, points = await self._client.scroll(
+            points, offset = await self._client.scroll(
                 collection_name=collection_name, offset=offset, limit=10
             )
             for point in points:
