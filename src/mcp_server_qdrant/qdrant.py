@@ -51,7 +51,7 @@ class QdrantConnector:
         """
         Store some information in the Qdrant collection, along with the specified metadata.
         :param entry: The entry to store in the Qdrant collection.
-        :param collection_name: The name of the collection to store the information in, optional.
+        :param collection_name: The name of the collection to store the information in.
         """
         await self._ensure_collection_exists(collection_name)
 
@@ -80,7 +80,7 @@ class QdrantConnector:
         """
         Find points in the Qdrant collection. If there are no entries found, an empty list is returned.
         :param query: The query to use for the search.
-        :param collection_name: The name of the collection to search in, optional.
+        :param collection_name: The name of the collection to search in.
         :param limit: The maximum number of entries to return.
         :return: A list of entries found.
         """
