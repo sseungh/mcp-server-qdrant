@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 Metadata = Dict[str, Any]
 
 
+class Collection(BaseModel):
+    """
+    A Qdrant collection.
+    """
+
+    name: str
+    """Qdrant collection name ([a-zA-Z_][a-zA-Z0-9_]*$)."""
+    description: str
+    """AI-friendly description of the kind of data stored in the collection."""
+
+
 class Entry(BaseModel):
     """
     A single entry in the Qdrant collection.
@@ -26,8 +37,6 @@ class QdrantConnector:
     Encapsulates the connection to a Qdrant server and all the methods to interact with it.
     :param qdrant_url: The URL of the Qdrant server.
     :param qdrant_api_key: The API key to use for the Qdrant server.
-    :param collection_name: The name of the default collection to use. If not provided, each tool will require
-                            the collection name to be provided.
     :param embedding_provider: The embedding provider to use.
     :param qdrant_local_path: The path to the storage directory for the Qdrant client, if local mode is used.
     """
@@ -36,13 +45,11 @@ class QdrantConnector:
         self,
         qdrant_url: Optional[str],
         qdrant_api_key: Optional[str],
-        collection_name: Optional[str],
         embedding_provider: EmbeddingProvider,
         qdrant_local_path: Optional[str] = None,
     ):
         self._qdrant_url = qdrant_url.rstrip("/") if qdrant_url else None
         self._qdrant_api_key = qdrant_api_key
-        self._default_collection_name = collection_name
         self._embedding_provider = embedding_provider
         self._client = AsyncQdrantClient(
             location=qdrant_url, api_key=qdrant_api_key, path=qdrant_local_path
@@ -56,15 +63,12 @@ class QdrantConnector:
         response = await self._client.get_collections()
         return [collection.name for collection in response.collections]
 
-    async def store(self, entry: Entry, *, collection_name: Optional[str] = None):
+    async def store(self, entry: Entry, *, collection_name: str):
         """
         Store some information in the Qdrant collection, along with the specified metadata.
         :param entry: The entry to store in the Qdrant collection.
-        :param collection_name: The name of the collection to store the information in, optional. If not provided,
-                                the default collection is used.
+        :param collection_name: The name of the collection to store the information in, optional.
         """
-        collection_name = collection_name or self._default_collection_name
-        assert collection_name is not None
         await self._ensure_collection_exists(collection_name)
 
         # Embed the document
@@ -87,17 +91,15 @@ class QdrantConnector:
         )
 
     async def search(
-        self, query: str, *, collection_name: Optional[str] = None, limit: int = 10
+        self, query: str, *, collection_name: str, limit: int = 10
     ) -> list[Entry]:
         """
         Find points in the Qdrant collection. If there are no entries found, an empty list is returned.
         :param query: The query to use for the search.
-        :param collection_name: The name of the collection to search in, optional. If not provided,
-                                the default collection is used.
+        :param collection_name: The name of the collection to search in, optional.
         :param limit: The maximum number of entries to return.
         :return: A list of entries found.
         """
-        collection_name = collection_name or self._default_collection_name
         collection_exists = await self._client.collection_exists(collection_name)
         if not collection_exists:
             return []
