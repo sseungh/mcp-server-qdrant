@@ -41,7 +41,6 @@ class QdrantMCPServer(FastMCP, abc.ABC):
         self.qdrant_connector = QdrantConnector(
             qdrant_settings.location,
             qdrant_settings.api_key,
-            qdrant_settings.collection_name,
             self.embedding_provider,
             qdrant_settings.local_path,
         )
@@ -113,6 +112,7 @@ class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
         """
         await ctx.debug(f"Finding results for query {query}")
 
+        assert self.qdrant_settings.collection_name is not None
         entries = await self.qdrant_connector.search(
             query,
             collection_name=self.qdrant_settings.collection_name,
@@ -142,6 +142,7 @@ class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
         """
         await ctx.debug(f"Storing information {information} in Qdrant")
 
+        assert self.qdrant_settings.collection_name is not None
         entry = Entry(content=information, metadata=metadata)
         await self.qdrant_connector.store(
             entry, collection_name=self.qdrant_settings.collection_name
@@ -154,6 +155,18 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
     An MCP server for Qdrant accepting collection name as a tool parameter,
     so multiple collections can be used for different kinds of memories.
     """
+
+    METADATA_COLLECTION_NAME = "__mcp_metadata__"
+
+    def setup_tools(self):
+        super().setup_tools()
+
+        # Register the tools for collection discovery
+        self.add_tool(
+            self.list_collections,
+            name="qdrant-list-collections",
+            description="List available collections in Qdrant",
+        )
 
     async def find(
         self,
@@ -210,6 +223,20 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
         await self.qdrant_connector.store(entry, collection_name=collection_name)
         return f"Remembered: {information} in collection {collection_name}"
 
+    async def list_collections(self, ctx: Context) -> List[str]:
+        await ctx.debug("Listing collections")
+
+        content = ["Available collections:\n"]
+        async for entry in self.qdrant_connector.iter_all(
+            collection_name=self.METADATA_COLLECTION_NAME
+        ):
+            collection_purpose = (
+                f": {entry.metadata.get('description')}" if entry.metadata else ""
+            )
+            collection_descriptor = f"- `{entry.content}`{collection_purpose}"
+            content.append(collection_descriptor)
+        return content
+
 
 def create_mcp_server(
     tool_settings: ToolSettings,
@@ -219,13 +246,16 @@ def create_mcp_server(
     """
     Create an instance of the appropriate MCP server based on the configuration.
     """
+    logger.info("Creating MCP server")
     if qdrant_settings.collection_name:
+        logger.info(f"Using default collection: {qdrant_settings.collection_name}")
         return DefaultCollectionQdrantMCPServer(
             tool_settings,
             qdrant_settings,
             embedding_provider_settings,
         )
 
+    logger.info("Using multiple collections")
     return MultiCollectionQdrantMCPServer(
         tool_settings,
         qdrant_settings,

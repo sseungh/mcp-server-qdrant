@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, AsyncIterable, Dict, Optional
 
 from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient, models
@@ -10,17 +10,6 @@ from mcp_server_qdrant.embeddings.base import EmbeddingProvider
 logger = logging.getLogger(__name__)
 
 Metadata = Dict[str, Any]
-
-
-class Collection(BaseModel):
-    """
-    A Qdrant collection.
-    """
-
-    name: str
-    """Qdrant collection name ([a-zA-Z_][a-zA-Z0-9_]*$)."""
-    description: str
-    """AI-friendly description of the kind of data stored in the collection."""
 
 
 class Entry(BaseModel):
@@ -54,14 +43,6 @@ class QdrantConnector:
         self._client = AsyncQdrantClient(
             location=qdrant_url, api_key=qdrant_api_key, path=qdrant_local_path
         )
-
-    async def get_collection_names(self) -> list[str]:
-        """
-        Get the names of all collections in the Qdrant server.
-        :return: A list of collection names.
-        """
-        response = await self._client.get_collections()
-        return [collection.name for collection in response.collections]
 
     async def store(self, entry: Entry, *, collection_name: str):
         """
@@ -126,6 +107,26 @@ class QdrantConnector:
             )
             for result in search_results.points
         ]
+
+    async def iter_all(self, collection_name: str) -> AsyncIterable[Entry]:
+        """
+        Iterate over all points in the Qdrant collection.
+        :param collection_name: The name of the collection to iterate over.
+        :return: An async iterator over the entries in the collection.
+        """
+        offset = None
+        logger.debug(f"Starting to iterate over collection {collection_name}")
+        while True:
+            offset, points = await self._client.scroll(
+                collection_name=collection_name, offset=offset, limit=10
+            )
+            for point in points:
+                yield Entry(
+                    content=point.payload["document"],
+                    metadata=point.payload.get("metadata"),
+                )
+            if not offset:
+                break
 
     async def _ensure_collection_exists(self, collection_name: str):
         """
