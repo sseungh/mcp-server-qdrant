@@ -22,7 +22,7 @@ The server can operate in two modes:
    operates with a single, default collection. In this mode, the tools don't require collection names as parameters,
    making it simpler to use but limited to one collection.
 
-1. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server
+2. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server
    allows working with multiple collections. In this mode:
 
    - Tools require `collection_name` as a parameter
@@ -40,7 +40,8 @@ The server can operate in two modes:
 | `qdrant-list-collections`  |            ✗            |           ✓           | List all collections in Qdrant database         | None                                                                                                                                                                              | List of available collections             |
 | `qdrant-create-collection` |            ✗            |           ✓           | Create a new collection in Qdrant               | - `collection_name` (string): Name of collection to create<br>- `description` (string): Purpose description                                                                       | Confirmation message                      |
 
-> [!NOTE] In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection
+> [!NOTE]
+> In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection
 > specified in the `COLLECTION_NAME` environment variable.
 
 ## Environment Variables
@@ -63,7 +64,8 @@ The configuration of the server is done using environment variables:
 
 Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 
-> [!IMPORTANT] Command-line arguments are not supported anymore! Please use environment variables for all configuration.
+> [!IMPORTANT]
+> Command-line arguments are not supported anymore! Please use environment variables for all configuration.
 
 ## Read-Only Mode
 
@@ -217,20 +219,22 @@ are running Cursor/Windsurf locally, you can use the following URL:
 http://localhost:8000/sse
 ```
 
-> [!TIP] We suggest SSE transport as a preferred way to connect Cursor/Windsurf to the MCP server, as it can support
+> [!TIP]
+> We suggest SSE transport as a preferred way to connect Cursor/Windsurf to the MCP server, as it can support
 > remote connections. That makes it easy to share the server with your team or use it in a cloud environment.
 
 This configuration transforms the Qdrant MCP server into a specialized code search tool that can:
 
 1. Store code snippets, documentation, and implementation details
-1. Retrieve relevant code examples based on semantic search
-1. Help developers find specific implementations or usage patterns
+2. Retrieve relevant code examples based on semantic search
+3. Help developers find specific implementations or usage patterns
 
 You can populate the database by storing natural language descriptions of code snippets (in the `information` parameter)
 along with the actual code (in the `metadata.code` property), and then search for them using natural language queries
 that describe what you're looking for.
 
-> [!NOTE] The tool descriptions provided above are examples and may need to be customized for your specific use case.
+> [!NOTE]
+> The tool descriptions provided above are examples and may need to be customized for your specific use case.
 > Consider adjusting the descriptions to better match your team's workflow and the specific types of code snippets you
 > want to store and retrieve.
 
@@ -259,7 +263,7 @@ existing codebase.
    -- uvx mcp-server-qdrant
    ```
 
-1. Verify the server was added:
+2. Verify the server was added:
 
    ```shell
    claude mcp list
@@ -272,7 +276,7 @@ the MCP server. The ones provided above are examples and may need to be customiz
 Claude Code should be already able to:
 
 1. Use the `qdrant-store` tool to store code snippets with descriptions.
-1. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
+2. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
 
 ### Run MCP server in Development Mode
 
@@ -301,7 +305,8 @@ mcp dev src/mcp_server_qdrant/server.py
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.
 
-> [!NOTE] The `QDRANT_URL=":memory:"` environment variable is used to run Qdrant in-memory mode. This is useful for
+> [!NOTE]
+> The `QDRANT_URL=":memory:"` environment variable is used to run Qdrant in-memory mode. This is useful for
 > testing purposes, but not recommended for production use.
 
 ## License
