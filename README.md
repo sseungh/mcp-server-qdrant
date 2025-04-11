@@ -16,38 +16,28 @@ This repository is an example of how to create a MCP server for [Qdrant](https:/
 An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine.
 It acts as a semantic memory layer on top of the Qdrant database.
 
+The server can operate in two modes:
+
+1. **Default Collection Mode** (`DefaultCollectionQdrantMCPServer`): When `COLLECTION_NAME` is specified, the server operates with a single, default collection. In this mode, the tools don't require collection names as parameters, making it simpler to use but limited to one collection.
+
+2. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server allows working with multiple collections. In this mode:
+   - Tools require `collection_name` as a parameter
+   - Additional tools `qdrant-list-collections` and `qdrant-create-collection` are available
+   - Useful for scenarios where different types of data need to be stored separately
+
 ## Components
 
 ### Tools
 
-1. `qdrant-store`
-   - Store some information in the Qdrant database
-   - Input:
-     - `information` (string): Information to store
-     - `metadata` (JSON): Optional metadata to store
-     - `collection_name` (string): Name of the collection to store the information in. This field is required if there are no default collection name.
-                                   If there is a default collection name, this field is not enabled.
-   - Returns: Confirmation message
+| Tool Name                  | Default Collection Mode | Multi-Collection Mode | Description                                     | Input Parameters                                                                                                                                                                  | Returns                                   |
+|----------------------------|:-----------------------:|:---------------------:|-------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| `qdrant-store`             |            ✓            |           ✓           | Store information in the Qdrant database        | - `information` (string): Information to store<br>- `metadata` (JSON): Optional metadata to store<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)* | Confirmation message                      |
+| `qdrant-find`              |            ✓            |           ✓           | Retrieve relevant information from the database | - `query` (string): Search query<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)*                                                                  | Matching information as separate messages |
+| `qdrant-list-collections`  |            ✗            |           ✓           | List all collections in Qdrant database         | None                                                                                                                                                                              | List of available collections             |
+| `qdrant-create-collection` |            ✗            |           ✓           | Create a new collection in Qdrant               | - `collection_name` (string): Name of collection to create<br>- `description` (string): Purpose description                                                                       | Confirmation message                      |
 
-2. `qdrant-find`
-   - Retrieve relevant information from the Qdrant database
-   - Input:
-     - `query` (string): Query to use for searching
-     - `collection_name` (string): Name of the collection to store the information in. This field is required if there are no default collection name.
-                                   If there is a default collection name, this field is not enabled.
-   - Returns: Information stored in the Qdrant database as separate messages
-
-3. `qdrant-list-collections`
-   - List all collections in Qdrant database the client can use
-   - Input: None
-   - Returns: List of available collections
-
-4. `qdrant-create-collection`
-   - Create a new collection in Qdrant
-   - Input:
-     - `collection_name` (string): Name of the collection to create
-     - `description` (string): Purpose description of the collection
-   - Returns: Confirmation message
+> [!NOTE]
+> In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection specified in the `COLLECTION_NAME` environment variable.
 
 ## Environment Variables
 
