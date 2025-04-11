@@ -39,9 +39,22 @@ def tool_settings():
 
 
 class TestDefaultCollectionQdrantMCPServer:
-    QUERY_SCHEMA = {"title": "Query", "type": "string"}
-    INFORMATION_SCHEMA = {"title": "Information", "type": "string"}
-    METADATA_SCHEMA = {"title": "Metadata", "type": "object", "default": None}
+    QUERY_SCHEMA = {
+        "title": "Query",
+        "description": "A natural language query to search for.",
+        "type": "string",
+    }
+    INFORMATION_SCHEMA = {
+        "title": "Information",
+        "description": "Natural language information to store.",
+        "type": "string",
+    }
+    METADATA_SCHEMA = {
+        "title": "Metadata",
+        "description": "JSON metadata to store with the information, optional.",
+        "type": "object",
+        "default": None,
+    }
 
     @pytest.mark.asyncio
     @patch("mcp_server_qdrant.mcp_server.create_embedding_provider")
@@ -103,10 +116,42 @@ class TestDefaultCollectionQdrantMCPServer:
 
 
 class TestMultiCollectionQdrantMCPServer:
-    QUERY_SCHEMA = {"title": "Query", "type": "string"}
-    COLLECTION_NAME_SCHEMA = {"title": "Collection Name", "type": "string"}
-    INFORMATION_SCHEMA = {"title": "Information", "type": "string"}
-    METADATA_SCHEMA = {"title": "Metadata", "type": "object", "default": None}
+    QUERY_SCHEMA = {
+        "title": "Query",
+        "description": "A natural language query to search for.",
+        "type": "string",
+    }
+    COLLECTION_NAME_FIND_SCHEMA = {
+        "title": "Collection Name",
+        "description": "Name of the collection to search in. Please list the existing collections to know which one to use.",
+        "type": "string",
+    }
+    COLLECTION_NAME_STORE_SCHEMA = {
+        "title": "Collection Name",
+        "description": "Name of the collection to store the information in. Please list the existing collections to know which one to use.",
+        "type": "string",
+    }
+    COLLECTION_NAME_CREATE_COLLECTION_SCHEMA = {
+        "title": "Collection Name",
+        "description": "Name of the collection to create.",
+        "type": "string",
+    }
+    INFORMATION_SCHEMA = {
+        "title": "Information",
+        "description": "Natural language information to store.",
+        "type": "string",
+    }
+    METADATA_SCHEMA = {
+        "title": "Metadata",
+        "description": "JSON metadata to store with the information, optional.",
+        "type": "object",
+        "default": None,
+    }
+    DESCRIPTION_SCHEMA = {
+        "title": "Description",
+        "description": "Purpose description of the collection.",
+        "type": "string",
+    }
 
     @pytest.mark.asyncio
     @patch("mcp_server_qdrant.mcp_server.create_embedding_provider")
@@ -143,7 +188,9 @@ class TestMultiCollectionQdrantMCPServer:
 
             assert "qdrant-find" in tool_names
             assert "qdrant-store" in tool_names
-            assert len(tool_names) == 2
+            assert "qdrant-list-collections" in tool_names
+            assert "qdrant-create-collection" in tool_names
+            assert len(tool_names) == 4
 
             # Verify find tool schema
             find_tool = next(
@@ -152,7 +199,7 @@ class TestMultiCollectionQdrantMCPServer:
             assert find_tool.inputSchema["properties"]["query"] == self.QUERY_SCHEMA
             assert (
                 find_tool.inputSchema["properties"]["collection_name"]
-                == self.COLLECTION_NAME_SCHEMA
+                == self.COLLECTION_NAME_FIND_SCHEMA
             )
             assert find_tool.inputSchema["required"] == ["query", "collection_name"]
 
@@ -169,11 +216,38 @@ class TestMultiCollectionQdrantMCPServer:
             )
             assert (
                 store_tool.inputSchema["properties"]["collection_name"]
-                == self.COLLECTION_NAME_SCHEMA
+                == self.COLLECTION_NAME_STORE_SCHEMA
             )
             assert store_tool.inputSchema["required"] == [
                 "information",
                 "collection_name",
+            ]
+
+            # Verify list collections tool schema
+            list_collections_tool = next(
+                tool
+                for tool in registered_tools
+                if tool.name == "qdrant-list-collections"
+            )
+            assert list_collections_tool.inputSchema["properties"] == {}
+
+            # Verify create collection tool schema
+            create_collection_tool = next(
+                tool
+                for tool in registered_tools
+                if tool.name == "qdrant-create-collection"
+            )
+            assert (
+                create_collection_tool.inputSchema["properties"]["collection_name"]
+                == self.COLLECTION_NAME_CREATE_COLLECTION_SCHEMA
+            )
+            assert (
+                create_collection_tool.inputSchema["properties"]["description"]
+                == self.DESCRIPTION_SCHEMA
+            )
+            assert create_collection_tool.inputSchema["required"] == [
+                "collection_name",
+                "description",
             ]
 
     @pytest.mark.asyncio
@@ -211,7 +285,9 @@ class TestMultiCollectionQdrantMCPServer:
 
             assert "qdrant-find" in tool_names
             assert "qdrant-store" not in tool_names
-            assert len(tool_names) == 1
+            assert "qdrant-list-collections" in tool_names
+            assert "qdrant-create-collection" not in tool_names
+            assert len(tool_names) == 2
 
             # Verify find tool schema
             find_tool = next(
@@ -220,9 +296,17 @@ class TestMultiCollectionQdrantMCPServer:
             assert find_tool.inputSchema["properties"]["query"] == self.QUERY_SCHEMA
             assert (
                 find_tool.inputSchema["properties"]["collection_name"]
-                == self.COLLECTION_NAME_SCHEMA
+                == self.COLLECTION_NAME_FIND_SCHEMA
             )
             assert find_tool.inputSchema["required"] == ["query", "collection_name"]
+
+            # Verify list collections tool schema
+            list_collections_tool = next(
+                tool
+                for tool in registered_tools
+                if tool.name == "qdrant-list-collections"
+            )
+            assert list_collections_tool.inputSchema["properties"] == {}
 
 
 @pytest.mark.asyncio

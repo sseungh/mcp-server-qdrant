@@ -14,6 +14,8 @@ DEFAULT_TOOL_FIND_DESCRIPTION = (
     " - Access memories for further analysis \n"
     " - Get some personal information about the user"
 )
+DEFAULT_TOOL_LIST_COLLECTIONS_DESCRIPTION = "List all collections in Qdrant."
+DEFAULT_TOOL_CREATE_COLLECTION_DESCRIPTION = "Create a new collection in Qdrant."
 
 
 class ToolSettings(BaseSettings):
@@ -28,6 +30,14 @@ class ToolSettings(BaseSettings):
     tool_find_description: str = Field(
         default=DEFAULT_TOOL_FIND_DESCRIPTION,
         validation_alias="TOOL_FIND_DESCRIPTION",
+    )
+    tool_list_collections_description: str = Field(
+        default=DEFAULT_TOOL_LIST_COLLECTIONS_DESCRIPTION,
+        validation_alias="TOOL_LIST_COLLECTIONS_DESCRIPTION",
+    )
+    tool_create_collection_description: str = Field(
+        default=DEFAULT_TOOL_CREATE_COLLECTION_DESCRIPTION,
+        validation_alias="TOOL_CREATE_COLLECTION_DESCRIPTION",
     )
 
 

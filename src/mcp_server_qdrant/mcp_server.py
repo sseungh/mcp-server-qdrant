@@ -1,9 +1,10 @@
 import abc
 import json
 import logging
-from typing import Any, List
+from typing import Annotated, Any, List
 
 from mcp.server.fastmcp import Context, FastMCP
+from pydantic import Field
 
 from mcp_server_qdrant.embeddings.factory import create_embedding_provider
 from mcp_server_qdrant.qdrant import Entry, Metadata, QdrantConnector
@@ -95,20 +96,22 @@ class QdrantMCPServer(FastMCP, abc.ABC):
 
 class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
     """
-    An MCP server for Qdrant using a single collection specified in
-    the configuration.
+    An MCP server for Qdrant using a single collection specified in the configuration.
     """
 
     async def find(
         self,
         ctx: Context,
-        query: str,
+        # Annotation help to describe the meaning of the parameter. MCP SDK is based on Pydantic.
+        query: Annotated[
+            str, Field(description="A natural language query to search for.")
+        ],
     ) -> List[str]:
         """
-        Find memories in Qdrant using the default collection.
-        :param ctx: The context for the request.
-        :param query: The query to use for the search.
-        :return: A list of entries found.
+        Look up memories in Qdrant. Use this tool when you need to:
+        - Find memories by their content
+        - Access memories for further analysis
+        - Get some personal information about the user
         """
         await ctx.debug(f"Finding results for query {query}")
 
@@ -130,15 +133,17 @@ class DefaultCollectionQdrantMCPServer(QdrantMCPServer):
     async def store(
         self,
         ctx: Context,
-        information: str,
-        metadata: Metadata = None,  # type: ignore
+        # Annotation help to describe the meaning of the parameter. MCP SDK is based on Pydantic.
+        information: Annotated[
+            str, Field(description="Natural language information to store.")
+        ],
+        metadata: Annotated[
+            Metadata,
+            Field(description="JSON metadata to store with the information, optional."),
+        ] = None,  # type: ignore
     ) -> str:
         """
-        Store some information in Qdrant in a default collection.
-        :param ctx: The context for the request.
-        :param information: The information to store.
-        :param metadata: JSON metadata to store with the information, optional.
-        :return: A message indicating that the information was stored.
+        Keep the memory for later use, when you are asked to remember something.
         """
         await ctx.debug(f"Storing information {information} in Qdrant")
 
@@ -165,27 +170,32 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
         self.add_tool(
             self.list_collections,
             name="qdrant-list-collections",
-            description="List available collections in Qdrant",
+            description=self.tool_settings.tool_list_collections_description,
         )
-        self.add_tool(
-            self.create_collection,
-            name="qdrant-create-collection",
-            description="Create a new collection in Qdrant",
-        )
+        if not self.qdrant_settings.read_only:
+            # Do not allow creating collections in read-only mode
+            self.add_tool(
+                self.create_collection,
+                name="qdrant-create-collection",
+                description=self.tool_settings.tool_create_collection_description,
+            )
 
     async def find(
         self,
         ctx: Context,
-        query: str,
-        collection_name: str,
+        # Annotation help to describe the meaning of the parameter. MCP SDK is based on Pydantic.
+        query: Annotated[
+            str, Field(description="A natural language query to search for.")
+        ],
+        collection_name: Annotated[
+            str,
+            Field(
+                description="Name of the collection to search in. Please list the existing collections to know which one to use."
+            ),
+        ],
     ) -> List[str]:
         """
-        Find memories in Qdrant.
-        :param ctx: The context for the request.
-        :param query: The query to use for the search.
-        :param collection_name: The name of the collection to search in, optional. If not provided,
-                                the default collection is used.
-        :return: A list of entries found.
+        Find memories in a specific Qdrant collection.
         """
         await ctx.debug(f"Finding results for query '{query}' in {collection_name}")
 
@@ -206,21 +216,29 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
     async def store(
         self,
         ctx: Context,
-        information: str,
-        collection_name: str,
+        # Annotation help to describe the meaning of the parameter. MCP SDK is based on Pydantic.
+        information: Annotated[
+            str, Field(description="Natural language information to store.")
+        ],
+        collection_name: Annotated[
+            str,
+            Field(
+                description="Name of the collection to store the information in. Please list the existing collections to know which one to use."
+            ),
+        ],
         # The `metadata` parameter is defined as non-optional, but it can be None.
         # If we set it to be optional, some of the MCP clients, like Cursor, cannot
         # handle the optional parameter correctly.
-        metadata: Metadata = None,  # type: ignore
+        metadata: Annotated[
+            Metadata,
+            Field(description="JSON metadata to store with the information, optional."),
+        ] = None,  # type: ignore
     ) -> str:
         """
-        Store some information in Qdrant.
-        :param ctx: The context for the request.
-        :param information: The information to store.
-        :param metadata: JSON metadata to store with the information, optional.
-        :param collection_name: The name of the collection to store the information in, optional. If not provided,
-                                the default collection is used.
-        :return: A message indicating that the information was stored.
+        Store some information in a specific Qdrant collection. Please list the existing collections to
+        know which one to use. The `information` parameter is the information to store, and `metadata` is
+        optional JSON metadata to store with the information. Please extract the metadata from the information
+        if possible.
         """
         await ctx.debug(f"Storing information {information} in Qdrant")
 
@@ -229,6 +247,10 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
         return f"Remembered: {information} in collection {collection_name}"
 
     async def list_collections(self, ctx: Context) -> List[str]:
+        """
+        List all the collections in Qdrant, along with their purpose descriptions.
+        Use this tool always when you wonder which collection to use.
+        """
         await ctx.debug("Listing collections")
 
         content = ["Available collections:"]
@@ -247,8 +269,19 @@ class MultiCollectionQdrantMCPServer(QdrantMCPServer):
         return content
 
     async def create_collection(
-        self, ctx: Context, collection_name: str, description: str
+        self,
+        ctx: Context,
+        # Annotation help to describe the meaning of the parameter. MCP SDK is based on Pydantic.
+        collection_name: Annotated[
+            str, Field(description="Name of the collection to create.")
+        ],
+        description: Annotated[
+            str, Field(description="Purpose description of the collection.")
+        ],
     ) -> str:
+        """
+        Create a new collection in Qdrant with the specified name and purpose description.
+        """
         await ctx.debug(f"Creating collection {collection_name}")
 
         await self.qdrant_connector.store(
