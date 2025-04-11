@@ -114,6 +114,10 @@ class QdrantConnector:
         :param collection_name: The name of the collection to iterate over.
         :return: An async iterator over the entries in the collection.
         """
+        collection_exists = await self._client.collection_exists(collection_name)
+        if not collection_exists:
+            return
+
         offset = None
         logger.debug(f"Starting to iterate over collection {collection_name}")
         while True:
