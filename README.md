@@ -13,14 +13,18 @@ This repository is an example of how to create a MCP server for [Qdrant](https:/
 
 ## Overview
 
-An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine.
-It acts as a semantic memory layer on top of the Qdrant database.
+An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine. It
+acts as a semantic memory layer on top of the Qdrant database.
 
 The server can operate in two modes:
 
-1. **Default Collection Mode** (`DefaultCollectionQdrantMCPServer`): When `COLLECTION_NAME` is specified, the server operates with a single, default collection. In this mode, the tools don't require collection names as parameters, making it simpler to use but limited to one collection.
+1. **Default Collection Mode** (`DefaultCollectionQdrantMCPServer`): When `COLLECTION_NAME` is specified, the server
+   operates with a single, default collection. In this mode, the tools don't require collection names as parameters,
+   making it simpler to use but limited to one collection.
 
-2. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server allows working with multiple collections. In this mode:
+1. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server
+   allows working with multiple collections. In this mode:
+
    - Tools require `collection_name` as a parameter
    - Additional tools `qdrant-list-collections` and `qdrant-create-collection` are available
    - Useful for scenarios where different types of data need to be stored separately
@@ -30,42 +34,63 @@ The server can operate in two modes:
 ### Tools
 
 | Tool Name                  | Default Collection Mode | Multi-Collection Mode | Description                                     | Input Parameters                                                                                                                                                                  | Returns                                   |
-|----------------------------|:-----------------------:|:---------------------:|-------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| -------------------------- | :---------------------: | :-------------------: | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | `qdrant-store`             |            ✓            |           ✓           | Store information in the Qdrant database        | - `information` (string): Information to store<br>- `metadata` (JSON): Optional metadata to store<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)* | Confirmation message                      |
 | `qdrant-find`              |            ✓            |           ✓           | Retrieve relevant information from the database | - `query` (string): Search query<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)*                                                                  | Matching information as separate messages |
 | `qdrant-list-collections`  |            ✗            |           ✓           | List all collections in Qdrant database         | None                                                                                                                                                                              | List of available collections             |
 | `qdrant-create-collection` |            ✗            |           ✓           | Create a new collection in Qdrant               | - `collection_name` (string): Name of collection to create<br>- `description` (string): Purpose description                                                                       | Confirmation message                      |
 
-> [!NOTE]
-> In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection specified in the `COLLECTION_NAME` environment variable.
+> [!NOTE] In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection
+> specified in the `COLLECTION_NAME` environment variable.
 
 ## Environment Variables
 
 The configuration of the server is done using environment variables:
 
-| Name                                | Description                                                         | Default Value                                                     |
-|------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
-| `QDRANT_URL`                        | URL of the Qdrant server                                            | None                                                              |
-| `QDRANT_API_KEY`                    | API key for the Qdrant server                                       | None                                                              |
-| `COLLECTION_NAME`                   | Name of the default collection to use.                              | None                                                              |
-| `QDRANT_LOCAL_PATH`                 | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
-| `EMBEDDING_PROVIDER`                | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
-| `EMBEDDING_MODEL`                   | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
-| `TOOL_STORE_DESCRIPTION`            | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_FIND_DESCRIPTION`             | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_LIST_COLLECTIONS_DESCRIPTION` | Custom description for the list collections tool                    | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_CREATE_COLLECTION_DESCRIPTION`| Custom description for the create collection tool                   | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| Name                                 | Description                                                         | Default Value                                                     |
+| ------------------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `QDRANT_URL`                         | URL of the Qdrant server                                            | None                                                              |
+| `QDRANT_API_KEY`                     | API key for the Qdrant server                                       | None                                                              |
+| `COLLECTION_NAME`                    | Name of the default collection to use.                              | None                                                              |
+| `QDRANT_LOCAL_PATH`                  | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
+| `QDRANT_READ_ONLY`                   | Enable read-only mode (disables write operations)                   | `false`                                                           |
+| `EMBEDDING_PROVIDER`                 | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
+| `EMBEDDING_MODEL`                    | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
+| `TOOL_STORE_DESCRIPTION`             | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_FIND_DESCRIPTION`              | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_LIST_COLLECTIONS_DESCRIPTION`  | Custom description for the list collections tool                    | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_CREATE_COLLECTION_DESCRIPTION` | Custom description for the create collection tool                   | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 
 Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 
-> [!IMPORTANT]
-> Command-line arguments are not supported anymore! Please use environment variables for all configuration.
+> [!IMPORTANT] Command-line arguments are not supported anymore! Please use environment variables for all configuration.
+
+## Read-Only Mode
+
+The server can be configured to operate in read-only mode by setting the `QDRANT_READ_ONLY` environment variable to
+`true`. In this mode:
+
+- The `qdrant-store` tool is disabled
+- In Multi-Collection Mode, the `qdrant-create-collection` tool is also disabled
+- All write operations are prevented
+- Only search and retrieval operations are allowed
+
+This mode is useful when you want to provide search capabilities over an existing dataset without allowing
+modifications. Example configuration:
+
+```bash
+QDRANT_URL="http://localhost:6333" \
+QDRANT_READ_ONLY="true" \
+COLLECTION_NAME="my-collection" \
+uvx mcp-server-qdrant
+```
 
 ## Installation
 
 ### Using uvx
 
-When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly run *mcp-server-qdrant*.
+When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly
+run *mcp-server-qdrant*.
 
 ```shell
 QDRANT_URL="http://localhost:6333" \
@@ -109,7 +134,8 @@ docker run -p 8000:8000 \
 
 ### Installing via Smithery
 
-To install Qdrant MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/protocol/mcp-server-qdrant):
+To install Qdrant MCP Server for Claude Desktop automatically via
+[Smithery](https://smithery.ai/protocol/mcp-server-qdrant):
 
 ```bash
 npx @smithery/cli install mcp-server-qdrant --client claude
@@ -153,8 +179,8 @@ For local Qdrant mode:
 
 This MCP server will automatically create a collection with the specified name if it doesn't exist.
 
-By default, the server will use the `sentence-transformers/all-MiniLM-L6-v2` embedding model to encode memories.
-For the time being, only [FastEmbed](https://qdrant.github.io/fastembed/) models are supported.
+By default, the server will use the `sentence-transformers/all-MiniLM-L6-v2` embedding model to encode memories. For the
+time being, only [FastEmbed](https://qdrant.github.io/fastembed/) models are supported.
 
 ## Support for other tools
 
@@ -182,33 +208,31 @@ Use this when you need to find existing code snippets for reuse or reference." \
 uvx mcp-server-qdrant --transport sse # Enable SSE transport
 ```
 
-In Cursor/Windsurf, you can then configure the MCP server in your settings by pointing to this running server using
-SSE transport protocol. The description on how to add an MCP server to Cursor can be found in the [Cursor
-documentation](https://docs.cursor.com/context/model-context-protocol#adding-an-mcp-server-to-cursor). If you are
-running Cursor/Windsurf locally, you can use the following URL:
+In Cursor/Windsurf, you can then configure the MCP server in your settings by pointing to this running server using SSE
+transport protocol. The description on how to add an MCP server to Cursor can be found in the
+[Cursor documentation](https://docs.cursor.com/context/model-context-protocol#adding-an-mcp-server-to-cursor). If you
+are running Cursor/Windsurf locally, you can use the following URL:
 
 ```
 http://localhost:8000/sse
 ```
 
-> [!TIP]
-> We suggest SSE transport as a preferred way to connect Cursor/Windsurf to the MCP server, as it can support remote
-> connections. That makes it easy to share the server with your team or use it in a cloud environment.
+> [!TIP] We suggest SSE transport as a preferred way to connect Cursor/Windsurf to the MCP server, as it can support
+> remote connections. That makes it easy to share the server with your team or use it in a cloud environment.
 
 This configuration transforms the Qdrant MCP server into a specialized code search tool that can:
 
 1. Store code snippets, documentation, and implementation details
-2. Retrieve relevant code examples based on semantic search
-3. Help developers find specific implementations or usage patterns
+1. Retrieve relevant code examples based on semantic search
+1. Help developers find specific implementations or usage patterns
 
 You can populate the database by storing natural language descriptions of code snippets (in the `information` parameter)
 along with the actual code (in the `metadata.code` property), and then search for them using natural language queries
 that describe what you're looking for.
 
-> [!NOTE]
-> The tool descriptions provided above are examples and may need to be customized for your specific use case. Consider
-> adjusting the descriptions to better match your team's workflow and the specific types of code snippets you want to
-> store and retrieve.
+> [!NOTE] The tool descriptions provided above are examples and may need to be customized for your specific use case.
+> Consider adjusting the descriptions to better match your team's workflow and the specific types of code snippets you
+> want to store and retrieve.
 
 **If you have successfully installed the `mcp-server-qdrant`, but still can't get it to work with Cursor, please
 consider creating the [Cursor rules](https://docs.cursor.com/context/rules-for-ai) so the MCP tools are always used when
@@ -224,22 +248,22 @@ existing codebase.
 
 1. Add the MCP server to Claude Code:
 
-    ```shell
-    # Add mcp-server-qdrant configured for code search
-    claude mcp add code-search \
-    -e QDRANT_URL="http://localhost:6333" \
-    -e COLLECTION_NAME="code-repository" \
-    -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-    -e TOOL_STORE_DESCRIPTION="Store code snippets with descriptions. The 'information' parameter should contain a natural language description of what the code does, while the actual code should be included in the 'metadata' parameter as a 'code' property." \
-    -e TOOL_FIND_DESCRIPTION="Search for relevant code snippets using natural language. The 'query' parameter should describe the functionality you're looking for." \
-    -- uvx mcp-server-qdrant
-    ```
+   ```shell
+   # Add mcp-server-qdrant configured for code search
+   claude mcp add code-search \
+   -e QDRANT_URL="http://localhost:6333" \
+   -e COLLECTION_NAME="code-repository" \
+   -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
+   -e TOOL_STORE_DESCRIPTION="Store code snippets with descriptions. The 'information' parameter should contain a natural language description of what the code does, while the actual code should be included in the 'metadata' parameter as a 'code' property." \
+   -e TOOL_FIND_DESCRIPTION="Search for relevant code snippets using natural language. The 'query' parameter should describe the functionality you're looking for." \
+   -- uvx mcp-server-qdrant
+   ```
 
-2. Verify the server was added:
+1. Verify the server was added:
 
-    ```shell
-    claude mcp list
-    ```
+   ```shell
+   claude mcp list
+   ```
 
 #### Using Semantic Code Search in Claude Code
 
@@ -248,7 +272,7 @@ the MCP server. The ones provided above are examples and may need to be customiz
 Claude Code should be already able to:
 
 1. Use the `qdrant-store` tool to store code snippets with descriptions.
-2. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
+1. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
 
 ### Run MCP server in Development Mode
 
@@ -437,8 +461,8 @@ For workspace configuration with Docker, use this in `.vscode/mcp.json`:
 
 ## Contributing
 
-If you have suggestions for how mcp-server-qdrant could be improved, or want to report a bug, open an issue!
-We'd love all and any contributions.
+If you have suggestions for how mcp-server-qdrant could be improved, or want to report a bug, open an issue! We'd love
+all and any contributions.
 
 ### Testing `mcp-server-qdrant` locally
 
@@ -453,9 +477,8 @@ mcp dev src/mcp_server_qdrant/server.py
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.
 
-> [!NOTE]
-> The `QDRANT_URL=":memory:"` environment variable is used to run Qdrant in-memory mode. This is useful for testing
-> purposes, but not recommended for production use.
+> [!NOTE] The `QDRANT_URL=":memory:"` environment variable is used to run Qdrant in-memory mode. This is useful for
+> testing purposes, but not recommended for production use.
 
 ## License
 

@@ -33,3 +33,16 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [tokenize-rt==3.2.0]
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.22
+    hooks:
+      - id: mdformat
+        args: [ "--wrap", "120" ]
+        additional_dependencies:
+          - mdformat-gfm  # GitHub-Flavored Markdown
+          - mdformat-frontmatter  # YAML/TOML frontmatter
+          - mdformat-footnote
+          - mdformat-tables
+          - mdformat-toc
+          - "mdformat-simple-breaks[full]"  # Handles line breaks
