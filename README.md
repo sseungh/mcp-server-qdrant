@@ -28,6 +28,7 @@ It acts as a semantic memory layer on top of the Qdrant database.
      - `collection_name` (string): Name of the collection to store the information in. This field is required if there are no default collection name.
                                    If there is a default collection name, this field is not enabled.
    - Returns: Confirmation message
+
 2. `qdrant-find`
    - Retrieve relevant information from the Qdrant database
    - Input:
@@ -36,20 +37,34 @@ It acts as a semantic memory layer on top of the Qdrant database.
                                    If there is a default collection name, this field is not enabled.
    - Returns: Information stored in the Qdrant database as separate messages
 
+3. `qdrant-list-collections`
+   - List all collections in Qdrant database the client can use
+   - Input: None
+   - Returns: List of available collections
+
+4. `qdrant-create-collection`
+   - Create a new collection in Qdrant
+   - Input:
+     - `collection_name` (string): Name of the collection to create
+     - `description` (string): Purpose description of the collection
+   - Returns: Confirmation message
+
 ## Environment Variables
 
 The configuration of the server is done using environment variables:
 
-| Name                     | Description                                                         | Default Value                                                     |
-|--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
-| `QDRANT_URL`             | URL of the Qdrant server                                            | None                                                              |
-| `QDRANT_API_KEY`         | API key for the Qdrant server                                       | None                                                              |
-| `COLLECTION_NAME`        | Name of the default collection to use.                              | None                                                              |
-| `QDRANT_LOCAL_PATH`      | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
-| `EMBEDDING_PROVIDER`     | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
-| `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
-| `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| Name                                | Description                                                         | Default Value                                                     |
+|------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
+| `QDRANT_URL`                        | URL of the Qdrant server                                            | None                                                              |
+| `QDRANT_API_KEY`                    | API key for the Qdrant server                                       | None                                                              |
+| `COLLECTION_NAME`                   | Name of the default collection to use.                              | None                                                              |
+| `QDRANT_LOCAL_PATH`                 | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
+| `EMBEDDING_PROVIDER`                | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
+| `EMBEDDING_MODEL`                   | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
+| `TOOL_STORE_DESCRIPTION`            | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_FIND_DESCRIPTION`             | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_LIST_COLLECTIONS_DESCRIPTION` | Custom description for the list collections tool                    | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_CREATE_COLLECTION_DESCRIPTION`| Custom description for the create collection tool                   | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 
 Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 
