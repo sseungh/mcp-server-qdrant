@@ -49,6 +49,13 @@ class QdrantMCPServer(FastMCP):
 
         self.setup_tools()
 
+    def format_entry(self, entry: Entry) -> str:
+        """
+        Feel free to override this method in your subclass to customize the format of the entry.
+        """
+        entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""
+        return f"<entry><content>{entry.content}</content><metadata>{entry_metadata}</metadata></entry>"
+
     async def find(
         self,
         ctx: Context,
@@ -180,13 +187,6 @@ class QdrantMCPServer(FastMCP):
         )
 
         return f"Created collection {collection_name}"
-
-    def format_entry(self, entry: Entry) -> str:
-        """
-        Feel free to override this method in your subclass to customize the format of the entry.
-        """
-        entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""
-        return f"<entry><content>{entry.content}</content><metadata>{entry_metadata}</metadata></entry>"
 
     def setup_tools(self):
         """
