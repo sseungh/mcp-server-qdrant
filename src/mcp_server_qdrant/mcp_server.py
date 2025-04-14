@@ -56,6 +56,36 @@ class QdrantMCPServer(FastMCP):
         entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""
         return f"<entry><content>{entry.content}</content><metadata>{entry_metadata}</metadata></entry>"
 
+    def setup_tools(self):
+        """
+        Register the tools in the server.
+        """
+        self.add_tool(
+            self.find,
+            name="qdrant-find",
+            description=self.tool_settings.tool_find_description,
+        )
+        self.add_tool(
+            self.list_collections,
+            name="qdrant-list-collections",
+            description=self.tool_settings.tool_list_collections_description,
+        )
+
+        if not self.qdrant_settings.read_only:
+            # Those methods can modify the database
+            self.add_tool(
+                self.store,
+                name="qdrant-store",
+                description=self.tool_settings.tool_store_description,
+            )
+            self.add_tool(
+                self.create_collection,
+                name="qdrant-create-collection",
+                description=self.tool_settings.tool_create_collection_description,
+            )
+
+        # TODO: if the default collection does not exist, create it here
+
     async def find(
         self,
         ctx: Context,
@@ -187,33 +217,3 @@ class QdrantMCPServer(FastMCP):
         )
 
         return f"Created collection {collection_name}"
-
-    def setup_tools(self):
-        """
-        Register the tools in the server.
-        """
-        self.add_tool(
-            self.find,
-            name="qdrant-find",
-            description=self.tool_settings.tool_find_description,
-        )
-        self.add_tool(
-            self.list_collections,
-            name="qdrant-list-collections",
-            description=self.tool_settings.tool_list_collections_description,
-        )
-
-        if not self.qdrant_settings.read_only:
-            # Those methods can modify the database
-            self.add_tool(
-                self.store,
-                name="qdrant-store",
-                description=self.tool_settings.tool_store_description,
-            )
-            self.add_tool(
-                self.create_collection,
-                name="qdrant-create-collection",
-                description=self.tool_settings.tool_create_collection_description,
-            )
-
-        # TODO: if the default collection does not exist, create it here
