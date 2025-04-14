@@ -63,7 +63,7 @@ class QdrantSettings(BaseSettings):
 
     location: Optional[str] = Field(default=None, validation_alias="QDRANT_URL")
     api_key: Optional[str] = Field(default=None, validation_alias="QDRANT_API_KEY")
-    collection_name: Optional[str] = Field(
+    collection_name: Optional[str] = Field(  # TODO: set the default collection name
         default=None,
         validation_alias="COLLECTION_NAME",
         description="Default collection name to use.",

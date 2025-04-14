@@ -13,46 +13,29 @@ This repository is an example of how to create a MCP server for [Qdrant](https:/
 
 ## Overview
 
-An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine. It
-acts as a semantic memory layer on top of the Qdrant database.
-
-The server can operate in two modes:
-
-1. **Default Collection Mode** (`DefaultCollectionQdrantMCPServer`): When `COLLECTION_NAME` is specified, the server
-   operates with a single, default collection. In this mode, the tools don't require collection names as parameters,
-   making it simpler to use but limited to one collection.
-
-2. **Multi-Collection Mode** (`MultiCollectionQdrantMCPServer`): When `COLLECTION_NAME` is not specified, the server
-   allows working with multiple collections. In this mode:
-
-   - Tools require `collection_name` as a parameter
-   - Additional tools `qdrant-list-collections` and `qdrant-create-collection` are available
-   - Useful for scenarios where different types of data need to be stored separately
-
-## Components
+An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine. It acts as a semantic memory layer on top of the Qdrant database, allowing you to work with multiple collections to organize different types of data. A default collection can be specified via configuration, but all tools support working with any collection by providing the collection name explicitly.
 
 ### Tools
 
-| Tool Name                  | Default Collection Mode | Multi-Collection Mode | Description                                     | Input Parameters                                                                                                                                                                  | Returns                                   |
-| -------------------------- | :---------------------: | :-------------------: | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `qdrant-store`             |            ✓            |           ✓           | Store information in the Qdrant database        | - `information` (string): Information to store<br>- `metadata` (JSON): Optional metadata to store<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)* | Confirmation message                      |
-| `qdrant-find`              |            ✓            |           ✓           | Retrieve relevant information from the database | - `query` (string): Search query<br>- `collection_name` (string): Collection name *(Multi-Collection Mode only)*                                                                  | Matching information as separate messages |
-| `qdrant-list-collections`  |            ✗            |           ✓           | List all collections in Qdrant database         | None                                                                                                                                                                              | List of available collections             |
-| `qdrant-create-collection` |            ✗            |           ✓           | Create a new collection in Qdrant               | - `collection_name` (string): Name of collection to create<br>- `description` (string): Purpose description                                                                       | Confirmation message                      |
+| Tool Name                  | Read-Only Mode | Description                                     | Input Parameters                                                                                                                                             | Returns                                   |
+|----------------------------|:--------------:|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| `qdrant-store`             |       ✗        | Store information in the Qdrant database        | - `information` (string): Information to store<br>- `metadata` (JSON): Optional metadata to store<br>- `collection_name` (string, optional): Collection name | Confirmation message                      |
+| `qdrant-find`              |       ✓        | Retrieve relevant information from the database | - `query` (string): Search query<br>- `collection_name` (string, optional): Collection name                                                                  | Matching information as separate messages |
+| `qdrant-list-collections`  |       ✓        | List all collections in Qdrant database         | None                                                                                                                                                         | List of available collections             |
+| `qdrant-create-collection` |       ✗        | Create a new collection in Qdrant               | - `collection_name` (string): Name of collection to create<br>- `description` (string): Purpose description                                                  | Confirmation message                      |
 
 > [!NOTE]
-> In Default Collection Mode, `collection_name` parameters are not required as the server uses the collection
-> specified in the `COLLECTION_NAME` environment variable.
+> When `collection_name` is not provided in tool parameters, the server uses the collection specified in the `COLLECTION_NAME` environment variable.
 
 ## Environment Variables
 
 The configuration of the server is done using environment variables:
 
 | Name                                 | Description                                                         | Default Value                                                     |
-| ------------------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+|--------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
 | `QDRANT_URL`                         | URL of the Qdrant server                                            | None                                                              |
 | `QDRANT_API_KEY`                     | API key for the Qdrant server                                       | None                                                              |
-| `COLLECTION_NAME`                    | Name of the default collection to use.                              | None                                                              |
+| `COLLECTION_NAME`                    | Default collection to use when not specified in tool parameters     | None                                                              |
 | `QDRANT_LOCAL_PATH`                  | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
 | `QDRANT_READ_ONLY`                   | Enable read-only mode (disables write operations)                   | `false`                                                           |
 | `EMBEDDING_PROVIDER`                 | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
@@ -69,16 +52,14 @@ Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same t
 
 ## Read-Only Mode
 
-The server can be configured to operate in read-only mode by setting the `QDRANT_READ_ONLY` environment variable to
-`true`. In this mode:
+The server can be configured to operate in read-only mode by setting the `QDRANT_READ_ONLY` environment variable to `true`. In this mode:
 
 - The `qdrant-store` tool is disabled
-- In Multi-Collection Mode, the `qdrant-create-collection` tool is also disabled
+- The `qdrant-create-collection` tool is disabled
 - All write operations are prevented
 - Only search and retrieval operations are allowed
 
-This mode is useful when you want to provide search capabilities over an existing dataset without allowing
-modifications. Example configuration:
+This mode is useful when you want to provide search capabilities over an existing dataset without allowing modifications. Example configuration:
 
 ```bash
 QDRANT_URL="http://localhost:6333" \
