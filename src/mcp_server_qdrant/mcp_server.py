@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 # of the server. Its API is based on FastAPI.
 class QdrantMCPServer(FastMCP):
     """
-    An MCP server for Qdrant using a single collection specified in
-    the configuration.
+    An MCP server for Qdrant.
     """
 
     METADATA_COLLECTION_NAME = "__mcp_metadata__"
