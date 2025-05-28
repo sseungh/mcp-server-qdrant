@@ -468,7 +468,7 @@ your browser to use the inspector.
 
 ```shell
 QDRANT_URL=":memory:" COLLECTION_NAME="test" \
-mcp dev src/mcp_server_qdrant/server.py
+fastmcp dev src/mcp_server_qdrant/server.py
 ```
 
 Once started, open your browser to http://localhost:5173 to access the inspector interface.
