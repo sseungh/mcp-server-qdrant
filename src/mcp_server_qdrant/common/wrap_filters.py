@@ -104,7 +104,7 @@ if __name__ == "__main__":
         print("query", query)
         print("collection_name", collection_name)
         print("query_filter", query_filter)
-        return ["mypy sucks"]
+        return ["mypy rules"]
 
     wrapped_find = wrap_filters(
         find,
