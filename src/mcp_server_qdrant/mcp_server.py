@@ -120,20 +120,23 @@ class QdrantMCPServer(FastMCP):
             for entry in entries:
                 content.append(self.format_entry(entry))
             return content
-        
+
         find_foo = find
         store_foo = store
 
         if self.qdrant_settings.collection_name:
-            find_foo = make_partial_function(find_foo, {"collection_name": self.qdrant_settings.collection_name})
-            store_foo = make_partial_function(store_foo, {"collection_name": self.qdrant_settings.collection_name})
-        
+            find_foo = make_partial_function(
+                find_foo, {"collection_name": self.qdrant_settings.collection_name}
+            )
+            store_foo = make_partial_function(
+                store_foo, {"collection_name": self.qdrant_settings.collection_name}
+            )
+
         self.add_tool(
             find_foo,
             name="qdrant-find",
             description=self.tool_settings.tool_find_description,
         )
-
 
         if not self.qdrant_settings.read_only:
             # Those methods can modify the database

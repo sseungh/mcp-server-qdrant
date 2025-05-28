@@ -2,6 +2,7 @@ import inspect
 from functools import wraps
 from typing import Callable
 
+
 def make_partial_function(original_func: Callable, fixed_values: dict) -> Callable:
     sig = inspect.signature(original_func)
 
