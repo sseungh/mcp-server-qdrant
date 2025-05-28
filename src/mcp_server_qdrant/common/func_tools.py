@@ -23,6 +23,6 @@ def make_partial_function(original_func: Callable, fixed_values: dict) -> Callab
     new_params = [sig.parameters[name] for name in remaining_params]
 
     # Set the new __signature__ for introspection
-    wrapper.__signature__ = sig.replace(parameters=new_params)
+    wrapper.__signature__ = sig.replace(parameters=new_params) # type:ignore
 
     return wrapper
