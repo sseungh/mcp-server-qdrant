@@ -58,7 +58,15 @@ def wrap_filters(
         else:
             raise ValueError(f"Unsupported field type: {field.field_type}")
 
-        annotation = Annotated[field_type, Field(description=field.description)]  # type: ignore
+        if field.condition in {"any", "except"}:
+            field_type = list[field_type]  # type: ignore
+
+        if field.required:
+            annotation = Annotated[field_type, Field(description=field.description)]  # type: ignore
+        else:
+            annotation = Annotated[  # type: ignore
+                Optional[field_type], Field(description=field.description)
+            ]  # type: ignore
 
         parameter = inspect.Parameter(
             name=field_name,
