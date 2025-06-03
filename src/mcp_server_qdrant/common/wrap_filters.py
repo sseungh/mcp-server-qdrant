@@ -1,6 +1,6 @@
 import inspect
 from functools import wraps
-from typing import Annotated, Callable
+from typing import Annotated, Callable, List, Optional
 
 from pydantic import Field
 
@@ -31,8 +31,6 @@ def wrap_filters(
         return original_func(**kwargs, query_filter=query_filter)
 
     # Replace `query_filter` signature with parameters from `filterable_fields`
-
-    # import ipdb; ipdb.set_trace()
 
     param_names = []
 
@@ -96,9 +94,6 @@ def wrap_filters(
 
 
 if __name__ == "__main__":
-    from typing import Annotated, List, Optional
-
-    from pydantic import Field
     from pydantic._internal._typing_extra import get_function_type_hints
     from qdrant_client import models
 
