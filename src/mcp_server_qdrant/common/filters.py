@@ -33,6 +33,18 @@ def make_filter(
                         key=field_name, match=models.MatchValue(value=field_value)
                     )
                 )
+            elif field.condition == "any":
+                must_conditions.append(
+                    models.FieldCondition(
+                        key=field_name, match=models.MatchAny(any=field_value)
+                    )
+                )
+            elif field.condition == "except":
+                must_conditions.append(
+                    models.FieldCondition(
+                        key=field_name, match=models.MatchExcept(except_=field_value)
+                    )
+                )
             elif field.condition is not None:
                 raise ValueError(
                     f"Invalid condition {field.condition} for keyword field {field_name}"
@@ -73,6 +85,18 @@ def make_filter(
                 must_conditions.append(
                     models.FieldCondition(
                         key=field_name, range=models.Range(lte=field_value)
+                    )
+                )
+            elif field.condition == "any":
+                must_conditions.append(
+                    models.FieldCondition(
+                        key=field_name, match=models.MatchAny(any=field_value)
+                    )
+                )
+            elif field.condition == "except":
+                must_conditions.append(
+                    models.FieldCondition(
+                        key=field_name, match=models.MatchExcept(except_=field_value)
                     )
                 )
             elif field.condition is not None:

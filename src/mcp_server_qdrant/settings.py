@@ -56,8 +56,10 @@ class FilterableField(BaseModel):
     field_type: Literal["keyword", "integer", "float", "boolean"] = Field(
         description="The type of the field"
     )
-    condition: Optional[Literal["==", "!=", ">", ">=", "<", "<="]] = Field(
-        description="The condition to use for the filter. If not provided, the field will be indexed, but no filter argument will be exposed to MCP tool."
+    condition: Optional[Literal["==", "!=", ">", ">=", "<", "<=", "any", "except"]] = (
+        Field(
+            description="The condition to use for the filter. If not provided, the field will be indexed, but no filter argument will be exposed to MCP tool."
+        )
     )
 
 
