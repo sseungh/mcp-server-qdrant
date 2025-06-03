@@ -2,12 +2,13 @@ from typing import Any
 
 from qdrant_client import models
 
+from mcp_server_qdrant.qdrant import ArbitraryFilter
 from mcp_server_qdrant.settings import METADATA_PATH, FilterableField
 
 
 def make_filter(
     filterable_fields: dict[str, FilterableField], values: dict[str, Any]
-) -> models.Filter:
+) -> ArbitraryFilter:
     must_conditions = []
     must_not_conditions = []
 
@@ -32,7 +33,7 @@ def make_filter(
                         key=field_name, match=models.MatchValue(value=field_value)
                     )
                 )
-            else:
+            elif field.condition is not None:
                 raise ValueError(
                     f"Invalid condition {field.condition} for keyword field {field_name}"
                 )
@@ -74,7 +75,7 @@ def make_filter(
                         key=field_name, range=models.Range(lte=field_value)
                     )
                 )
-            else:
+            elif field.condition is not None:
                 raise ValueError(
                     f"Invalid condition {field.condition} for integer field {field_name}"
                 )
@@ -105,7 +106,7 @@ def make_filter(
                         key=field_name, range=models.Range(lte=field_value)
                     )
                 )
-            else:
+            elif field.condition is not None:
                 raise ValueError(
                     f"Invalid condition {field.condition} for float field {field_name}. Only range comparisons (>, >=, <, <=) are supported for float values."
                 )
@@ -123,7 +124,7 @@ def make_filter(
                         key=field_name, match=models.MatchValue(value=field_value)
                     )
                 )
-            else:
+            elif field.condition is not None:
                 raise ValueError(
                     f"Invalid condition {field.condition} for boolean field {field_name}"
                 )
@@ -133,7 +134,9 @@ def make_filter(
                 f"Unsupported field type {field.field_type} for field {field_name}"
             )
 
-    return models.Filter(must=must_conditions, must_not=must_not_conditions)
+    return models.Filter(
+        must=must_conditions, must_not=must_not_conditions
+    ).model_dump()
 
 
 def make_indexes(

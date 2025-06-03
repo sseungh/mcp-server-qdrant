@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 Metadata = Dict[str, Any]
 
+ArbitraryFilter = Dict[str, Any]
+
 
 class Entry(BaseModel):
     """

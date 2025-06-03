@@ -10,7 +10,7 @@ from mcp_server_qdrant.common.filters import make_indexes
 from mcp_server_qdrant.common.func_tools import make_partial_function
 from mcp_server_qdrant.common.wrap_filters import wrap_filters
 from mcp_server_qdrant.embeddings.factory import create_embedding_provider
-from mcp_server_qdrant.qdrant import Entry, Metadata, QdrantConnector
+from mcp_server_qdrant.qdrant import ArbitraryFilter, Entry, Metadata, QdrantConnector
 from mcp_server_qdrant.settings import (
     EmbeddingProviderSettings,
     QdrantSettings,
@@ -106,7 +106,7 @@ class QdrantMCPServer(FastMCP):
             collection_name: Annotated[
                 str, Field(description="The collection to search in")
             ],
-            query_filter: Optional[models.Filter] = None,
+            query_filter: Optional[ArbitraryFilter] = None,
         ) -> List[str]:
             """
             Find memories in Qdrant.
@@ -116,6 +116,12 @@ class QdrantMCPServer(FastMCP):
                                     the default collection is used.
             :return: A list of entries found.
             """
+
+            # Log query_filter
+            await ctx.debug(f"Query filter: {query_filter}")
+
+            query_filter = models.Filter(**query_filter) if query_filter else None
+
             await ctx.debug(f"Finding results for query {query}")
             if collection_name:
                 await ctx.debug(
@@ -144,7 +150,7 @@ class QdrantMCPServer(FastMCP):
             find_foo = wrap_filters(
                 find_foo, self.qdrant_settings.filterable_fields_dict()
             )
-        else:
+        elif not self.qdrant_settings.allow_arbitrary_filter:
             find_foo = make_partial_function(find_foo, {"query_filter": None})
 
         if self.qdrant_settings.collection_name:

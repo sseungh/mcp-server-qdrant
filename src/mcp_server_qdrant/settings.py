@@ -56,8 +56,8 @@ class FilterableField(BaseModel):
     field_type: Literal["keyword", "integer", "float", "boolean"] = Field(
         description="The type of the field"
     )
-    condition: Literal["==", "!=", ">", ">=", "<", "<="] = Field(
-        description="The condition to use for the filter"
+    condition: Optional[Literal["==", "!=", ">", ">=", "<", "<="]] = Field(
+        description="The condition to use for the filter. If not provided, the field will be indexed, but no filter argument will be exposed to MCP tool."
     )
 
 
@@ -78,6 +78,10 @@ class QdrantSettings(BaseSettings):
     read_only: bool = Field(default=False, validation_alias="QDRANT_READ_ONLY")
 
     filterable_fields: Optional[list[FilterableField]] = Field(default=None)
+
+    allow_arbitrary_filter: bool = Field(
+        default=False, validation_alias="QDRANT_ALLOW_ARBITRARY_FILTER"
+    )
 
     def filterable_fields_dict(self) -> dict[str, FilterableField]:
         if self.filterable_fields is None:
