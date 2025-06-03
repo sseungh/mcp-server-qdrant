@@ -146,10 +146,12 @@ class QdrantMCPServer(FastMCP):
         find_foo = find
         store_foo = store
 
-        if self.qdrant_settings.filterable_fields:
-            find_foo = wrap_filters(
-                find_foo, self.qdrant_settings.filterable_fields_dict()
-            )
+        filterable_conditions = (
+            self.qdrant_settings.filterable_fields_dict_with_conditions()
+        )
+
+        if len(filterable_conditions) > 0:
+            find_foo = wrap_filters(find_foo, filterable_conditions)
         elif not self.qdrant_settings.allow_arbitrary_filter:
             find_foo = make_partial_function(find_foo, {"query_filter": None})
 

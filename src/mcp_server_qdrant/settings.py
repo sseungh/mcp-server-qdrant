@@ -87,3 +87,12 @@ class QdrantSettings(BaseSettings):
         if self.filterable_fields is None:
             return {}
         return {field.name: field for field in self.filterable_fields}
+
+    def filterable_fields_dict_with_conditions(self) -> dict[str, FilterableField]:
+        if self.filterable_fields is None:
+            return {}
+        return {
+            field.name: field
+            for field in self.filterable_fields
+            if field.condition is not None
+        }
