@@ -18,6 +18,12 @@ def make_filter(
 
         field = filterable_fields[raw_field_name]
 
+        if field_value is None:
+            if field.required:
+                raise ValueError(f"Field {raw_field_name} is required")
+            else:
+                continue
+
         field_name = f"{METADATA_PATH}.{raw_field_name}"
 
         if field.field_type == "keyword":
