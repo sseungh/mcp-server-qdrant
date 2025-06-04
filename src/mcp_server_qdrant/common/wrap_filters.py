@@ -1,6 +1,6 @@
 import inspect
 from functools import wraps
-from typing import Annotated, Callable, List, Optional
+from typing import Annotated, Callable, Optional
 
 from pydantic import Field
 
@@ -44,7 +44,7 @@ def wrap_filters(
     # Create a new signature parameters from `filterable_fields`
     for field in filterable_fields.values():
         field_name = field.name
-        field_type: type | None = None
+        field_type: type
         if field.field_type == "keyword":
             field_type = str
         elif field.field_type == "integer":
@@ -57,6 +57,10 @@ def wrap_filters(
             raise ValueError(f"Unsupported field type: {field.field_type}")
 
         if field.condition in {"any", "except"}:
+            if field_type not in {str, int}:
+                raise ValueError(
+                    f'Only "keyword" and "integer" types are supported for "{field.condition}" condition'
+                )
             field_type = list[field_type]  # type: ignore
 
         if field.required:
@@ -64,7 +68,7 @@ def wrap_filters(
         else:
             annotation = Annotated[  # type: ignore
                 Optional[field_type], Field(description=field.description)
-            ]  # type: ignore
+            ]
 
         parameter = inspect.Parameter(
             name=field_name,
@@ -103,7 +107,7 @@ if __name__ == "__main__":
             str, Field(description="The collection to search in")
         ],
         query_filter: Optional[models.Filter] = None,
-    ) -> List[str]:
+    ) -> list[str]:
         print("query", query)
         print("collection_name", collection_name)
         print("query_filter", query_filter)

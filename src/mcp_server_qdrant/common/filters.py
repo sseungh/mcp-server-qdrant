@@ -48,7 +48,7 @@ def make_filter(
             elif field.condition == "except":
                 must_conditions.append(
                     models.FieldCondition(
-                        key=field_name, match=models.MatchExcept(except_=field_value)
+                        key=field_name, match=models.MatchExcept(**{"except": field_value})
                     )
                 )
             elif field.condition is not None:
@@ -102,7 +102,7 @@ def make_filter(
             elif field.condition == "except":
                 must_conditions.append(
                     models.FieldCondition(
-                        key=field_name, match=models.MatchExcept(except_=field_value)
+                        key=field_name, match=models.MatchExcept(**{"except": field_value})
                     )
                 )
             elif field.condition is not None:
@@ -138,7 +138,8 @@ def make_filter(
                 )
             elif field.condition is not None:
                 raise ValueError(
-                    f"Invalid condition {field.condition} for float field {field_name}. Only range comparisons (>, >=, <, <=) are supported for float values."
+                    f"Invalid condition {field.condition} for float field {field_name}. "
+                    "Only range comparisons (>, >=, <, <=) are supported for float values."
                 )
 
         elif field.field_type == "boolean":
@@ -182,7 +183,7 @@ def make_indexes(
         elif field.field_type == "float":
             indexes[f"{METADATA_PATH}.{field_name}"] = models.PayloadSchemaType.FLOAT
         elif field.field_type == "boolean":
-            indexes[f"{METADATA_PATH}.{field_name}"] = models.PayloadSchemaType.BOOLEAN
+            indexes[f"{METADATA_PATH}.{field_name}"] = models.PayloadSchemaType.BOOL
         else:
             raise ValueError(
                 f"Unsupported field type {field.field_type} for field {field_name}"

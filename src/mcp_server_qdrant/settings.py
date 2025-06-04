@@ -58,7 +58,10 @@ class FilterableField(BaseModel):
     )
     condition: Optional[Literal["==", "!=", ">", ">=", "<", "<=", "any", "except"]] = (
         Field(
-            description="The condition to use for the filter. If not provided, the field will be indexed, but no filter argument will be exposed to MCP tool."
+            description=(
+                "The condition to use for the filter. If not provided, the field will be indexed, but no "
+                "filter argument will be exposed to MCP tool."
+            )
         )
     )
     required: bool = Field(
