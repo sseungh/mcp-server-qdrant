@@ -48,7 +48,8 @@ def make_filter(
             elif field.condition == "except":
                 must_conditions.append(
                     models.FieldCondition(
-                        key=field_name, match=models.MatchExcept(**{"except": field_value})
+                        key=field_name,
+                        match=models.MatchExcept(**{"except": field_value}),
                     )
                 )
             elif field.condition is not None:
@@ -102,7 +103,8 @@ def make_filter(
             elif field.condition == "except":
                 must_conditions.append(
                     models.FieldCondition(
-                        key=field_name, match=models.MatchExcept(**{"except": field_value})
+                        key=field_name,
+                        match=models.MatchExcept(**{"except": field_value}),
                     )
                 )
             elif field.condition is not None:
