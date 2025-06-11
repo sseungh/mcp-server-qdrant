@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings
 
 from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
@@ -104,3 +104,12 @@ class QdrantSettings(BaseSettings):
             for field in self.filterable_fields
             if field.condition is not None
         }
+
+    @model_validator(mode="after")
+    def check_local_path_conflict(self) -> "QdrantSettings":
+        if self.local_path:
+            if self.location is not None or self.api_key is not None:
+                raise ValueError(
+                    "If 'local_path' is set, 'location' and 'api_key' must be None."
+                )
+        return self

@@ -124,10 +124,6 @@ class QdrantMCPServer(FastMCP):
             query_filter = models.Filter(**query_filter) if query_filter else None
 
             await ctx.debug(f"Finding results for query {query}")
-            if collection_name:
-                await ctx.debug(
-                    f"Overriding the collection name with {collection_name}"
-                )
 
             entries = await self.qdrant_connector.search(
                 query,
