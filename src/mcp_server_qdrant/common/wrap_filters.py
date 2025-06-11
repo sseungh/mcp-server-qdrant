@@ -40,6 +40,8 @@ def wrap_filters(
         param_names.append(param_name)
 
     new_params = [sig.parameters[param_name] for param_name in param_names]
+    required_new_params = []
+    optional_new_params = []
 
     # Create a new signature parameters from `filterable_fields`
     for field in filterable_fields.values():
@@ -65,18 +67,26 @@ def wrap_filters(
 
         if field.required:
             annotation = Annotated[field_type, Field(description=field.description)]  # type: ignore
+            parameter = inspect.Parameter(
+                name=field_name,
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=annotation,
+            )
+            required_new_params.append(parameter)
         else:
             annotation = Annotated[  # type: ignore
                 Optional[field_type], Field(description=field.description)
             ]
+            parameter = inspect.Parameter(
+                name=field_name,
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                default=None,
+                annotation=annotation,
+            )
+            optional_new_params.append(parameter)
 
-        parameter = inspect.Parameter(
-            name=field_name,
-            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            default=None,
-            annotation=annotation,
-        )
-        new_params.append(parameter)
+    new_params.extend(required_new_params)
+    new_params.extend(optional_new_params)
 
     # Set the new __signature__ for introspection
     new_signature = sig.replace(parameters=new_params)
@@ -121,7 +131,14 @@ if __name__ == "__main__":
                 description="The color of the object",
                 field_type="keyword",
                 condition="==",
-            )
+            ),
+            "size": FilterableField(
+                name="size",
+                description="The size of the object",
+                field_type="keyword",
+                condition="==",
+                required=True,
+            ),
         },
     )
 
