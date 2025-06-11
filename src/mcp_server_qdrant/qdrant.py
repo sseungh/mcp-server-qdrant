@@ -31,6 +31,7 @@ class QdrantConnector:
     :param collection_name: The name of the default collection to use. If not provided, each tool will require
                             the collection name to be provided.
     :param embedding_provider: The embedding provider to use.
+    :param qdrant_local_path: The path to the storage directory for the Qdrant client, if local mode is used.
     """
 
     def __init__(
